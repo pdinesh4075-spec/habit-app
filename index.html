@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Daily Discipline</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Discipline">
+<meta name="theme-color" content="#131519">
+<style>
+  :root{
+    --bg:#131519; --surface:#1B1E24; --surfaceAlt:#21252C;
+    --border:#2C313A; --borderSoft:#23272F;
+    --hi:#EDEFF3; --mid:#9AA1AD; --lo:#5D646F;
+    --morning:#F2B54C; --work:#5FA8E8; --fitness:#E8695F;
+    --mental:#9B8CE0; --money:#57C08A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{background:var(--bg);color:var(--hi);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+  body{padding:calc(14px + env(safe-area-inset-top)) 14px calc(60px + env(safe-area-inset-bottom));
+    max-width:920px;margin:0 auto;}
+
+  .top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px;}
+  .brand h1{font-weight:800;font-size:26px;letter-spacing:.01em;line-height:1;text-transform:uppercase;font-stretch:condensed;}
+  .brand p{color:var(--mid);font-size:12.5px;margin-top:4px;}
+  .savedot{font-size:11px;color:var(--lo);transition:color .3s;white-space:nowrap;}
+  .savedot.on{color:var(--money);}
+
+  .weekbar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin-bottom:14px;}
+  .weeklabel{font-weight:700;font-size:15px;letter-spacing:.03em;text-transform:uppercase;}
+  .weeklabel span{color:var(--mid);font-size:12px;display:block;text-transform:none;font-weight:400;letter-spacing:0;margin-top:1px;}
+  .nav{display:flex;align-items:center;gap:8px;}
+  .nav button,.today-btn{background:var(--surfaceAlt);color:var(--hi);border:1px solid var(--border);
+    border-radius:10px;height:38px;min-width:38px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .today-btn{padding:0 12px;font-size:12.5px;font-weight:600;}
+  .nav button:active,.today-btn:active{background:var(--border);}
+
+  .summary{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;
+    background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:16px;}
+  .bar{height:10px;border-radius:6px;background:var(--surfaceAlt);overflow:hidden;}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--fitness),var(--morning));border-radius:6px;transition:width .35s;}
+  .summary .lbl{color:var(--mid);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:8px;}
+  .bignum{font-weight:800;font-size:32px;line-height:1;text-align:right;}
+  .bignum small{display:block;font-weight:500;font-size:11px;color:var(--mid);letter-spacing:.03em;margin-top:3px;text-transform:uppercase;}
+
+  .scroll{overflow-x:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface);-webkit-overflow-scrolling:touch;}
+  table{border-collapse:collapse;width:100%;}
+  th,td{border-bottom:1px solid var(--borderSoft);}
+  thead th{position:sticky;top:0;background:var(--surface);z-index:3;}
+  .habcol{position:sticky;left:0;z-index:2;background:var(--surface);text-align:left;
+    min-width:172px;width:172px;padding:10px 12px;}
+  thead .habcol{z-index:4;}
+  .dayhead{width:46px;min-width:46px;padding:8px 4px 10px;text-align:center;vertical-align:top;}
+  .dayhead .dn{font-weight:700;font-size:12px;letter-spacing:.05em;color:var(--mid);text-transform:uppercase;}
+  .dayhead .dd{font-size:11px;color:var(--lo);margin-top:1px;}
+  .dayhead.today .dn{color:var(--hi);}
+  td.today,.dayhead.today{background:rgba(242,181,76,.06);}
+  .ring{width:26px;height:26px;border-radius:50%;margin:5px auto 0;
+    background:conic-gradient(var(--rc,var(--money)) calc(var(--p,0)*1%),var(--surfaceAlt) 0);
+    display:flex;align-items:center;justify-content:center;}
+  .ring::after{content:"";width:18px;height:18px;border-radius:50%;background:var(--surface);}
+
+  tr.cat td{padding:9px 12px;background:var(--surfaceAlt);}
+  tr.cat .habcol{background:var(--surfaceAlt);}
+  .catname{font-weight:800;font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
+  .dot{width:9px;height:9px;border-radius:3px;flex:none;}
+  .catmeta{color:var(--lo);font-size:11px;font-weight:400;margin-left:auto;}
+
+  .hab td{padding:0;}
+  .habname{padding:11px 12px;font-size:13.5px;line-height:1.25;}
+  .cell{width:46px;height:44px;padding:0;text-align:center;}
+  .box{width:26px;height:26px;margin:0 auto;border-radius:8px;border:1.5px solid var(--border);
+    background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:transform .12s,background .12s,border-color .12s;}
+  .box:active{transform:scale(.88);}
+  .box svg{width:15px;height:15px;opacity:0;transform:scale(.5);transition:opacity .14s,transform .14s;}
+  .box.on{border-color:transparent;}
+  .box.on svg{opacity:1;transform:scale(1);}
+  .box:focus-visible{outline:2px solid var(--morning);outline-offset:2px;}
+
+  .foot{display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:12px;flex-wrap:wrap;}
+  .reset{background:none;border:1px solid var(--border);color:var(--mid);
+    font-size:12px;padding:8px 14px;border-radius:10px;cursor:pointer;}
+  .reset:active{background:var(--surface);}
+  .credit{color:var(--lo);font-size:11px;}
+  .credit b{color:var(--mid);font-weight:600;}
+
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;}}
+</style>
+</head>
+<body>
+  <div class="top">
+    <div class="brand">
+      <h1>Daily Discipline</h1>
+      <p>Your habits decide who you become.</p>
+    </div>
+    <div class="savedot" id="savedot"></div>
+  </div>
+
+  <div class="weekbar">
+    <div class="weeklabel">Week<span id="weekrange"></span></div>
+    <div class="nav">
+      <button id="prev" aria-label="Previous week">‹</button>
+      <button class="today-btn" id="jump">Today</button>
+      <button id="next" aria-label="Next week">›</button>
+    </div>
+  </div>
+
+  <div class="summary">
+    <div>
+      <div class="lbl">This week</div>
+      <div class="bar"><i id="weekfill" style="width:0%"></i></div>
+    </div>
+    <div class="bignum" id="weekpct">0%<small id="daysontrack">0 days on track</small></div>
+  </div>
+
+  <div class="scroll">
+    <table id="grid"><thead></thead><tbody></tbody></table>
+  </div>
+
+  <div class="foot">
+    <button class="reset" id="reset">Reset this week</button>
+    <div class="credit">Layout inspired by <b>@grindwithspoidy</b></div>
+  </div>
+
+<script>
+const CATS = [
+  { id:"morning", name:"Morning", color:"var(--morning)", hex:"#F2B54C", habits:[
+    "Wake on time (no snooze)","No phone 30 mins","Make bed","Warm water",
+    "High-protein breakfast","Pack food","Reach office early"]},
+  { id:"work", name:"Work", color:"var(--work)", hex:"#5FA8E8", habits:[
+    "No scrolling at start / turn off data","Lunch on time","Learn 1 thing + make notes"]},
+  { id:"fitness", name:"Fitness", color:"var(--fitness)", hex:"#E8695F", habits:[
+    "Gym — no excuses","Follow workout plan","Track weights","Stretch","3L+ water",
+    "Light dinner","Prep next day","30 min study","Sleep by 11 PM"]},
+  { id:"mental", name:"Mental", color:"var(--mental)", hex:"#9B8CE0", habits:[
+    "Speak less","No gossip","Control anger"]},
+  { id:"money", name:"Money", color:"var(--money)", hex:"#57C08A", habits:[
+    "Track expenses","No unnecessary Swiggy/Zomato","Save 20%"]},
+];
+const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="#131519" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>';
+
+const HABITS = [];
+CATS.forEach(c => c.habits.forEach((h,i)=>HABITS.push({key:c.id+"_"+i, cat:c.id, name:h})));
+const TOTAL = HABITS.length;
+
+let weekStart = mondayOf(new Date());
+let state = {};
+let saveTimer = null;
+
+function mondayOf(d){
+  const x = new Date(d); x.setHours(0,0,0,0);
+  const day = (x.getDay()+6)%7;
+  x.setDate(x.getDate()-day); return x;
+}
+function iso(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), dd=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${dd}`;
+}
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function fmt(d){ return d.toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
+function weekKey(){ return "habits:"+iso(weekStart); }
+function todayIndex(){
+  const t = mondayOf(new Date());
+  if(iso(t)!==iso(weekStart)) return -1;
+  return (new Date().getDay()+6)%7;
+}
+
+function load(){
+  state = {};
+  try {
+    const raw = localStorage.getItem(weekKey());
+    if(raw) state = JSON.parse(raw);
+  } catch(e){}
+  render();
+}
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  const dot = document.getElementById("savedot");
+  dot.textContent = "Saving…"; dot.classList.remove("on");
+  saveTimer = setTimeout(()=>{
+    try{ localStorage.setItem(weekKey(), JSON.stringify(state)); }catch(e){}
+    dot.textContent = "Saved ✓"; dot.classList.add("on");
+    setTimeout(()=>{ dot.textContent=""; dot.classList.remove("on"); }, 1500);
+  }, 200);
+}
+
+function cellOn(key,day){ return !!(state[key] && state[key][day]); }
+function toggle(key,day){
+  if(!state[key]) state[key] = [false,false,false,false,false,false,false];
+  state[key][day] = !state[key][day];
+  scheduleSave(); render();
+}
+function dayCount(day){ let n=0; HABITS.forEach(h=>{ if(cellOn(h.key,day)) n++; }); return n; }
+
+function render(){
+  document.getElementById("weekrange").textContent =
+    fmt(weekStart) + " – " + fmt(addDays(weekStart,6));
+
+  const ti = todayIndex();
+  const thead = document.querySelector("#grid thead");
+  const tbody = document.querySelector("#grid tbody");
+
+  let h = '<tr><th class="habcol"></th>';
+  DAYS.forEach((d,i)=>{
+    const date = addDays(weekStart,i);
+    const done = dayCount(i);
+    const pct = Math.round(done/TOTAL*100);
+    const isT = i===ti;
+    h += `<th class="dayhead${isT?' today':''}">
+      <div class="dn">${d}</div><div class="dd">${date.getDate()}</div>
+      <div class="ring" style="--p:${pct};--rc:${pct===100?'var(--money)':'var(--morning)'}"></div></th>`;
+  });
+  h += '</tr>'; thead.innerHTML = h;
+
+  let b = "";
+  CATS.forEach(c=>{
+    let cdone=0, ctot=c.habits.length*7;
+    c.habits.forEach((_,i)=>{ for(let d=0;d<7;d++) if(cellOn(c.id+"_"+i,d)) cdone++; });
+    b += `<tr class="cat"><td class="habcol"><span class="catname">
+      <span class="dot" style="background:${c.color}"></span>${c.name}</span></td>
+      <td colspan="7"><span class="catmeta">${cdone}/${ctot}</span></td></tr>`;
+    c.habits.forEach((name,i)=>{
+      const key = c.id+"_"+i;
+      b += `<tr class="hab"><td class="habcol"><div class="habname">${name}</div></td>`;
+      for(let d=0; d<7; d++){
+        const on = cellOn(key,d);
+        const isT = d===ti;
+        b += `<td class="cell${isT?' today':''}">
+          <button class="box${on?' on':''}" style="${on?`background:${c.hex}`:''}"
+            data-k="${key}" data-d="${d}" aria-pressed="${on}"
+            aria-label="${name}, ${DAYS[d]}">${CHECK}</button></td>`;
+      }
+      b += '</tr>';
+    });
+  });
+  tbody.innerHTML = b;
+
+  let done=0; HABITS.forEach(h=>{ for(let d=0;d<7;d++) if(cellOn(h.key,d)) done++; });
+  const pct = Math.round(done/(TOTAL*7)*100);
+  document.getElementById("weekfill").style.width = pct+"%";
+  document.getElementById("weekpct").childNodes[0].nodeValue = pct+"%";
+  let onTrack=0; for(let d=0; d<7; d++) if(dayCount(d) >= Math.ceil(TOTAL*0.7)) onTrack++;
+  document.getElementById("daysontrack").textContent = onTrack+" days on track";
+
+  tbody.querySelectorAll(".box").forEach(btn=>{
+    btn.addEventListener("click",()=>toggle(btn.dataset.k, +btn.dataset.d));
+  });
+}
+
+document.getElementById("prev").onclick = ()=>{ weekStart=addDays(weekStart,-7); load(); };
+document.getElementById("next").onclick = ()=>{ weekStart=addDays(weekStart, 7); load(); };
+document.getElementById("jump").onclick = ()=>{ weekStart=mondayOf(new Date()); load(); };
+document.getElementById("reset").onclick = ()=>{
+  if(confirm("Clear all checkmarks for this week?")){ state={}; scheduleSave(); render(); }
+};
+
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+load();
+</script>
+</body>
+</html>
